@@ -10,7 +10,7 @@
     <a href="https://github.com/brimleylabs/laravel-dolt/actions/workflows/tests.yml"><img src="https://github.com/brimleylabs/laravel-dolt/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
     <a href="https://packagist.org/packages/brimleylabs/laravel-dolt"><img src="https://img.shields.io/packagist/v/brimleylabs/laravel-dolt.svg" alt="Latest version on Packagist"></a>
     <a href="https://packagist.org/packages/brimleylabs/laravel-dolt"><img src="https://img.shields.io/packagist/dependency-v/brimleylabs/laravel-dolt/php.svg" alt="PHP version"></a>
-    <a href="LICENSE"><img src="https://img.shields.io/packagist/l/brimleylabs/laravel-dolt.svg" alt="MIT license"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/brimleylabs/laravel-dolt.svg" alt="MIT license"></a>
 </p>
 
 [Dolt](https://www.dolthub.com) is a SQL database with Git built in: branches, commits, diffs, merges and time travel. This package puts all of that behind Laravel's database layer, for Dolt (MySQL protocol) and Doltgres (Postgres protocol), so Eloquent, the query builder, migrations, queues and tests keep working as they do today.
