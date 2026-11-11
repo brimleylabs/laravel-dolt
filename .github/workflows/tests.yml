@@ -1,0 +1,109 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  DOLT_VERSION: 2.7.2
+  DOLTGRES_VERSION: 1.5.0
+
+jobs:
+  static:
+    name: Style, static analysis and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql, pdo_pgsql
+          coverage: none
+
+      - run: composer update --prefer-dist --no-interaction --no-progress
+
+      - run: composer lint
+      - run: composer analyse
+      - run: composer test:unit
+
+  servers:
+    name: PHP ${{ matrix.php }}, Laravel ${{ matrix.laravel }}, ${{ matrix.server }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+        laravel: ['12', '13']
+        server: [dolt, doltgres]
+        exclude:
+          # Laravel 13 needs PHP 8.3 or newer.
+          - php: '8.2'
+            laravel: '13'
+        include:
+          - laravel: '12'
+            testbench: '^10.0'
+          - laravel: '13'
+            testbench: '^11.0'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: pdo_mysql, pdo_pgsql
+          coverage: none
+
+      - name: Start Dolt
+        if: matrix.server == 'dolt'
+        run: |
+          curl -fsSL -o dolt.tar.gz "https://github.com/dolthub/dolt/releases/download/v${DOLT_VERSION}/dolt-linux-amd64.tar.gz"
+          tar -xzf dolt.tar.gz
+          DOLT="$(find "$PWD" -type f -name dolt -path '*bin*' | head -n 1)"
+          "$DOLT" config --global --add user.name "CI"
+          "$DOLT" config --global --add user.email "ci@example.test"
+          mkdir -p "$RUNNER_TEMP/dolt-data"
+          nohup "$DOLT" sql-server --host 127.0.0.1 --port 3306 --data-dir "$RUNNER_TEMP/dolt-data" > "$RUNNER_TEMP/dolt.log" 2>&1 &
+          for i in $(seq 1 30); do nc -z 127.0.0.1 3306 && exit 0; sleep 1; done
+          cat "$RUNNER_TEMP/dolt.log"; exit 1
+
+      - name: Start Doltgres
+        if: matrix.server == 'doltgres'
+        run: |
+          curl -fsSL -o doltgres.tar.gz "https://github.com/dolthub/doltgresql/releases/download/v${DOLTGRES_VERSION}/doltgresql-linux-amd64.tar.gz"
+          tar -xzf doltgres.tar.gz
+          DOLTGRES="$(find "$PWD" -type f -name doltgres -path '*bin*' | head -n 1)"
+          mkdir -p "$RUNNER_TEMP/doltgres-data"
+          printf 'log_level: info\nlistener:\n  host: 127.0.0.1\n  port: 5432\ndata_dir: %s\n' "$RUNNER_TEMP/doltgres-data" > "$RUNNER_TEMP/doltgres.yaml"
+          (cd "$RUNNER_TEMP" && nohup "$DOLTGRES" -config doltgres.yaml > doltgres.log 2>&1 &)
+          for i in $(seq 1 30); do nc -z 127.0.0.1 5432 && exit 0; sleep 1; done
+          cat "$RUNNER_TEMP/doltgres.log"; exit 1
+
+      - name: Install Laravel ${{ matrix.laravel }}
+        run: |
+          composer require --no-update --no-interaction \
+            "illuminate/console:^${{ matrix.laravel }}.0" \
+            "illuminate/contracts:^${{ matrix.laravel }}.0" \
+            "illuminate/database:^${{ matrix.laravel }}.0" \
+            "illuminate/http:^${{ matrix.laravel }}.0" \
+            "illuminate/support:^${{ matrix.laravel }}.0"
+          composer require --dev --no-update --no-interaction "orchestra/testbench:${{ matrix.testbench }}"
+          composer update --prefer-dist --no-interaction --no-progress --with-all-dependencies
+
+      - name: Transaction mode
+        run: vendor/bin/phpunit --no-coverage
+        env:
+          DOLT_TEST_DRIVER: ${{ matrix.server == 'doltgres' && 'pgsql' || 'mysql' }}
+          DOLT_TEST_PORT: ${{ matrix.server == 'doltgres' && '5432' || '3306' }}
+          DOLT_TEST_COMMIT_MODE: transaction
+
+      - name: Request mode
+        run: vendor/bin/phpunit --no-coverage
+        env:
+          DOLT_TEST_DRIVER: ${{ matrix.server == 'doltgres' && 'pgsql' || 'mysql' }}
+          DOLT_TEST_PORT: ${{ matrix.server == 'doltgres' && '5432' || '3306' }}
+          DOLT_TEST_COMMIT_MODE: request

@@ -1,0 +1,64 @@
+{
+    "name": "brimleylabs/laravel-dolt",
+    "description": "Version control for your Laravel database. Branches, commits, diffs, merges and time travel, powered by Dolt.",
+    "keywords": ["laravel", "dolt", "doltgres", "database", "version control", "branches", "audit log", "time travel", "eloquent", "ai agents"],
+    "homepage": "https://github.com/brimleylabs/laravel-dolt",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Matthew Summers",
+            "homepage": "https://github.com/brimleylabs"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/brimleylabs/laravel-dolt/issues",
+        "source": "https://github.com/brimleylabs/laravel-dolt"
+    },
+    "require": {
+        "php": "^8.2",
+        "ext-pdo": "*",
+        "illuminate/console": "^12.0|^13.0",
+        "illuminate/contracts": "^12.0|^13.0",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/http": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^3.14",
+        "laravel/pint": "^1.18",
+        "orchestra/testbench": "^10.0|^11.0",
+        "phpunit/phpunit": "^11.0|^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BrimleyLabs\\Dolt\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BrimleyLabs\\Dolt\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BrimleyLabs\\Dolt\\DoltServiceProvider"
+            ],
+            "aliases": {
+                "Dolt": "BrimleyLabs\\Dolt\\Facades\\Dolt"
+            }
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:unit": "phpunit --testsuite Unit",
+        "analyse": "phpstan analyse --memory-limit=1G",
+        "format": "pint",
+        "lint": "pint --test"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

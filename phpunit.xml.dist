@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         failOnWarning="true"
+         failOnRisky="true">
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+    <php>
+        <!--
+            The feature tests need a running server. Each test creates and drops its own database.
+
+            DOLT_TEST_DRIVER picks it: "mysql" for Dolt, the default, or "pgsql" for Doltgres.
+            DOLT_TEST_PORT, DOLT_TEST_USERNAME and DOLT_TEST_PASSWORD default to what each
+            server ships with: 3306, root and no password, or 5432, postgres and "password".
+        -->
+        <env name="DOLT_TEST_HOST" value="127.0.0.1"/>
+    </php>
+</phpunit>

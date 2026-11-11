@@ -1,0 +1,21 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 6
+    paths:
+        - src
+    tmpDir: build/phpstan
+    ignoreErrors:
+        # Applications use these traits. The package itself does not.
+        -
+            identifier: trait.unused
+            path: src/Testing/RefreshDoltDatabase.php
+        -
+            identifier: trait.unused
+            path: src/Eloquent/Versioned.php
+        # hasMiddleware() is not on the HTTP kernel contract, so another kernel may lack it.
+        # Larastan resolves the test kernel, which has it, so the check looks always true.
+        -
+            identifier: function.alreadyNarrowedType
+            path: src/Console/DoctorCommand.php
